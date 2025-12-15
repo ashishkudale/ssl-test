@@ -17,6 +17,34 @@ curl -X GET https://test-ssl-pinning.up.railway.app/api/user
 curl -X GET https://test-ssl-pinning.up.railway.app/health
 ```
 
+### POST /api/login endpoint (Login with credentials)
+```bash
+# Login with admin user
+curl -X POST https://test-ssl-pinning.up.railway.app/api/login \
+  -H "Content-Type: application/json" \
+  -d '{"username":"admin","password":"admin123"}'
+
+# Login with john user
+curl -X POST https://test-ssl-pinning.up.railway.app/api/login \
+  -H "Content-Type: application/json" \
+  -d '{"username":"john","password":"john123"}'
+
+# Login with sarah user
+curl -X POST https://test-ssl-pinning.up.railway.app/api/login \
+  -H "Content-Type: application/json" \
+  -d '{"username":"sarah","password":"sarah123"}'
+
+# Login with demo user
+curl -X POST https://test-ssl-pinning.up.railway.app/api/login \
+  -H "Content-Type: application/json" \
+  -d '{"username":"demo","password":"demo123"}'
+
+# Test invalid credentials
+curl -X POST https://test-ssl-pinning.up.railway.app/api/login \
+  -H "Content-Type: application/json" \
+  -d '{"username":"invalid","password":"wrong"}'
+```
+
 ### Verbose output with SSL details
 ```bash
 curl -v -X GET https://test-ssl-pinning.up.railway.app/api/test
@@ -26,6 +54,9 @@ curl -v -X GET https://test-ssl-pinning.up.railway.app/api/test
 ```bash
 curl -X GET https://test-ssl-pinning.up.railway.app/api/test | jq
 curl -X GET https://test-ssl-pinning.up.railway.app/api/user | jq
+curl -X POST https://test-ssl-pinning.up.railway.app/api/login \
+  -H "Content-Type: application/json" \
+  -d '{"username":"admin","password":"admin123"}' | jq
 ```
 
 ---
@@ -109,6 +140,53 @@ echo | openssl s_client -connect test-ssl-pinning.up.railway.app:443 2>/dev/null
 {
   "status": "healthy",
   "service": "ssl-pinning-test"
+}
+```
+
+### Request 4: Login (POST)
+- **Method:** POST
+- **URL:** `https://test-ssl-pinning.up.railway.app/api/login`
+- **Headers:**
+  - `Content-Type: application/json`
+- **Body (raw JSON):**
+```json
+{
+  "username": "admin",
+  "password": "admin123"
+}
+```
+- **Expected Response (Success):**
+```json
+{
+  "status": "success",
+  "message": "Login successful",
+  "token": "mock_token_admin_12345",
+  "user": {
+    "id": 1,
+    "username": "admin",
+    "name": "Admin User",
+    "email": "admin@example.com",
+    "age": 30,
+    "userType": "administrator",
+    "role": "admin",
+    "department": "IT",
+    "joinDate": "2020-01-15",
+    "isActive": true
+  }
+}
+```
+
+**Test Credentials:**
+- Username: `admin` | Password: `admin123` (Administrator)
+- Username: `john` | Password: `john123` (Regular Developer)
+- Username: `sarah` | Password: `sarah123` (Premium Manager)
+- Username: `demo` | Password: `demo123` (Trial User)
+
+**Expected Response (Failed):**
+```json
+{
+  "status": "error",
+  "message": "Invalid username or password"
 }
 ```
 

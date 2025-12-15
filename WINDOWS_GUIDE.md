@@ -12,6 +12,14 @@ curl https://test-ssl-pinning.up.railway.app/api/user
 
 # Health check
 curl https://test-ssl-pinning.up.railway.app/health
+
+# POST Login endpoint (Windows CMD/PowerShell curl)
+curl -X POST https://test-ssl-pinning.up.railway.app/api/login -H "Content-Type: application/json" -d "{\"username\":\"admin\",\"password\":\"admin123\"}"
+
+# Login with different users
+curl -X POST https://test-ssl-pinning.up.railway.app/api/login -H "Content-Type: application/json" -d "{\"username\":\"john\",\"password\":\"john123\"}"
+curl -X POST https://test-ssl-pinning.up.railway.app/api/login -H "Content-Type: application/json" -d "{\"username\":\"sarah\",\"password\":\"sarah123\"}"
+curl -X POST https://test-ssl-pinning.up.railway.app/api/login -H "Content-Type: application/json" -d "{\"username\":\"demo\",\"password\":\"demo123\"}"
 ```
 
 ### Using PowerShell Invoke-WebRequest
@@ -21,6 +29,37 @@ Invoke-WebRequest -Uri "https://test-ssl-pinning.up.railway.app/api/test" | Sele
 
 # Test /api/user endpoint
 Invoke-WebRequest -Uri "https://test-ssl-pinning.up.railway.app/api/user" | Select-Object -ExpandProperty Content
+
+# POST Login endpoint
+$body = @{
+    username = "admin"
+    password = "admin123"
+} | ConvertTo-Json
+
+$response = Invoke-WebRequest -Uri "https://test-ssl-pinning.up.railway.app/api/login" `
+    -Method POST `
+    -ContentType "application/json" `
+    -Body $body
+
+$response.Content | ConvertFrom-Json | ConvertTo-Json -Depth 10
+
+# Login with different users
+$loginData = @(
+    @{ username = "admin"; password = "admin123" },
+    @{ username = "john"; password = "john123" },
+    @{ username = "sarah"; password = "sarah123" },
+    @{ username = "demo"; password = "demo123" }
+)
+
+foreach ($user in $loginData) {
+    $body = $user | ConvertTo-Json
+    Write-Host "`nTesting login for: $($user.username)" -ForegroundColor Cyan
+    $response = Invoke-WebRequest -Uri "https://test-ssl-pinning.up.railway.app/api/login" `
+        -Method POST `
+        -ContentType "application/json" `
+        -Body $body
+    $response.Content | ConvertFrom-Json | ConvertTo-Json -Depth 10
+}
 
 # Get full response details
 $response = Invoke-WebRequest -Uri "https://test-ssl-pinning.up.railway.app/api/test"
@@ -255,7 +294,7 @@ openssl s_client -connect test-ssl-pinning.up.railway.app:443 < NUL 2>&1 | opens
 
 ## 📮 Postman (EASIEST for API Testing!)
 
-### Create Requests:
+### GET Requests:
 1. **New Request** → Method: `GET`
 2. **URLs to test:**
    ```
@@ -264,6 +303,49 @@ openssl s_client -connect test-ssl-pinning.up.railway.app:443 < NUL 2>&1 | opens
    https://test-ssl-pinning.up.railway.app/health
    ```
 3. Click **Send**
+
+### POST Login Request:
+1. **New Request** → Method: `POST`
+2. **URL:** `https://test-ssl-pinning.up.railway.app/api/login`
+3. **Headers:**
+   - Add `Content-Type: application/json`
+4. **Body:**
+   - Select **"raw"** and **"JSON"**
+   - Enter:
+   ```json
+   {
+     "username": "admin",
+     "password": "admin123"
+   }
+   ```
+5. Click **Send**
+
+**Expected Response:**
+```json
+{
+  "status": "success",
+  "message": "Login successful",
+  "token": "mock_token_admin_12345",
+  "user": {
+    "id": 1,
+    "username": "admin",
+    "name": "Admin User",
+    "email": "admin@example.com",
+    "age": 30,
+    "userType": "administrator",
+    "role": "admin",
+    "department": "IT",
+    "joinDate": "2020-01-15",
+    "isActive": true
+  }
+}
+```
+
+**Test Users:**
+- `admin` / `admin123` - Administrator
+- `john` / `john123` - Regular Developer
+- `sarah` / `sarah123` - Premium Manager
+- `demo` / `demo123` - Trial User
 
 ### View Certificate in Postman:
 1. Click the 🔒 **lock icon** next to URL
